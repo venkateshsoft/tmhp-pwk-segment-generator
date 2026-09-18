@@ -1,0 +1,140 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TMHP PWK Segment Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px #ccc;
+      width: 600px;
+    }
+    h2 {
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 20px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    pre {
+      background: #f4f4f4;
+      padding: 10px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      margin-top: 20px;
+    }
+    .bold {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>TMHP PWK Segment Generator</h2>
+    <label>Phone Number (10 digits)</label>
+    <input type="text" id="phone" maxlength="10" />
+
+    <label>Insurance Address (max 18 chars)</label>
+    <input type="text" id="address" maxlength="18" />
+
+    <label>City (max 20 chars)</label>
+    <input type="text" id="city" maxlength="20" />
+
+    <label>State Code (2 letters)</label>
+    <input type="text" id="state" maxlength="2" />
+
+    <label>ZIP Code (5-9 digits)</label>
+    <input type="text" id="zip" maxlength="9" />
+
+    <label>Disposition Date (YYYYMMDD)</label>
+    <input type="text" id="date" maxlength="8" />
+
+    <label>Payer Position</label>
+    <select id="payer">
+      <option value="Primary">Primary</option>
+      <option value="Secondary">Secondary</option>
+      <option value="Tertiary">Tertiary</option>
+    </select>
+
+    <button onclick="generate()">Generate PWK Segments</button>
+    <button onclick="copyBold()">Copy Bold PWK06</button>
+
+    <pre id="output"></pre>
+  </div>
+
+  <script>
+    function padRight(str, length) {
+      return str + ' '.repeat(length - str.length);
+    }
+
+    function getPrefix(payer) {
+      if (payer === "Primary") return "1";
+      if (payer === "Secondary") return "2";
+      if (payer === "Tertiary") return "3";
+      return "";
+    }
+
+    function generate() {
+      const phone = document.getElementById("phone").value.trim();
+      const address = document.getElementById("address").value.trim();
+      const city = document.getElementById("city").value.trim();
+      const state = document.getElementById("state").value.trim();
+      const zip = document.getElementById("zip").value.trim();
+      const date = document.getElementById("date").value.trim();
+      const payer = document.getElementById("payer").value;
+
+      if (!/^[0-9]{10}$/.test(phone)) return alert("Invalid phone number");
+      if (!/^[0-9]{5,9}$/.test(zip)) return alert("Invalid ZIP code");
+      if (!/^[0-9]{8}$/.test(date)) return alert("Invalid date format");
+      if (!/^[A-Z]{2}$/i.test(state)) return alert("Invalid state code");
+
+      const prefix = getPrefix(payer);
+
+      const pwk1 = `PWK*EB*EL***AC*<b>A5Q${prefix}${phone}${padRight(address, 18)}</b>~`;
+      const pwk2 = `PWK*EB*EL***AC*<b>A5R${prefix}${padRight(city, 20)}${state.toUpperCase()}${zip}</b>~`;
+      const pwk3 = `PWK*EB*EL***AC*<b>B8Z${prefix}${date}</b>~`;
+
+      document.getElementById("output").innerHTML = pwk1 + "\n" + pwk2 + "\n" + pwk3;
+    }
+
+    function copyBold() {
+      const output = document.getElementById("output");
+      const temp = document.createElement("textarea");
+      temp.value = Array.from(output.querySelectorAll("b")).map(b => b.textContent).join("\n");
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand("copy");
+      document.body.removeChild(temp);
+      alert("PWK06 values copied to clipboard.");
+    }
+  </script>
+</body>
+</html>
